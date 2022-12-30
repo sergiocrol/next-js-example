@@ -1,13 +1,12 @@
+import { StoreProvider } from "../store/store-context";
+
 import "../styles/globals.css";
 
 function MyApp({ Component, pageProps }) {
   return (
-    <div>
+    <StoreProvider>
       <Component {...pageProps} />
-      <footer>
-        <p>2022 - S|C|R</p>
-      </footer>
-    </div>
+    </StoreProvider>
   );
 }
 
