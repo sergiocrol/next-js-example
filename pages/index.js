@@ -7,20 +7,9 @@ import Card from "../components/card";
 
 import styles from "../styles/Home.module.css";
 
-import { fetchCoffeeStores } from "../lib/coffee-stores";
 import useTrackLocation from "../hooks/use-track-location";
 
 import { StoreContext, ACTION_TYPES } from "../store/store-context";
-
-export async function getStaticProps(context) {
-  const coffeeStores = await fetchCoffeeStores();
-
-  return {
-    props: {
-      coffeeStores,
-    },
-  };
-}
 
 export default function Home(props) {
   const {
@@ -34,20 +23,25 @@ export default function Home(props) {
     handleTrackLocation();
   };
 
-  // const [coffeeStores, setCoffeeStores] = React.useState("");
   const [coffeeStoresError, setCoffeeStoresError] = React.useState(null);
 
   React.useEffect(() => {
     if (latLong) {
       const getCurrentPositionCoffeeStores = async () => {
         try {
-          const coffeeStores = await fetchCoffeeStores(latLong, 30);
+          const response = await fetch(
+            `/api/getCoffeeStoresByLocation?latLong=${latLong}&limit=${30}`
+          );
+
+          const coffeeStores = await response.json();
+
           dispatch({
             type: ACTION_TYPES.SET_COFFEE_STORES,
             payload: {
               coffeeStores,
             },
           });
+          setCoffeeStoresError("");
         } catch (error) {
           setCoffeeStoresError(error.message);
         }
@@ -97,11 +91,11 @@ export default function Home(props) {
           </div>
         )}
 
-        {props.coffeeStores.length > 0 && (
+        {coffeeStores.length === 0 && (
           <div className={styles.sectionWrapper}>
             <h2 className={styles.heading2}>Bilbao stores</h2>
             <div className={styles.cardLayout}>
-              {props.coffeeStores.map((coffeeStore) => {
+              {coffeeStores.map((coffeeStore) => {
                 return (
                   <Card
                     key={coffeeStore.id}

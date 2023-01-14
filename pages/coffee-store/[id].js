@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import { useRouter } from "next/router";
 import Link from "next/link";
 import Head from "next/head";
@@ -68,22 +68,60 @@ const CoffeeStore = (initialProps) => {
     state: { coffeeStores },
   } = useContext(StoreContext);
 
+  // In order to use BD with Airtable, we can use it at this point.
+  // We just want to save those coffee stores visited by someone, so if that url with the CoffeeStore's is shared,
+  // this exists in the app's DB (otherwise it will only exists in the user's context)
+  const handleCreateCoffeeStore = async (coffeeStore) => {
+    try {
+      const { name, voting, imgUrl, id, neighbourhood, address } = coffeeStore;
+      const response = await fetch("/api/createCoffeeStore", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+          name,
+          voting: 0,
+          imgUrl,
+          neighbourhood: neighbourhood || "",
+          address: address || "",
+        }),
+      });
+
+      const dbCoffeeStore = await response.json();
+      console.log({ dbCoffeeStore });
+    } catch (err) {
+      console.log("Error creating coffee store", err);
+    }
+  };
+
   React.useEffect(() => {
     if (isEmpty(coffeeStore)) {
       if (coffeeStores.length > 0) {
-        const findCoffeeStoreById = coffeeStores.find(
+        const coffeeStoreFromContext = coffeeStores.find(
           (coffeStore) => coffeStore.id.toString() === id
         );
 
-        setCoffeeStore(findCoffeeStoreById);
+        if (coffeeStoreFromContext) {
+          setCoffeeStore(coffeeStoreFromContext);
+          handleCreateCoffeeStore(coffeeStoreFromContext);
+        }
       }
+    } else {
+      //SSG
+      handleCreateCoffeeStore(coffeeStore);
     }
-  }, [id]);
+  }, [id, coffeeStore]);
 
-  const { address, neighborhood, name, imgUrl } = coffeeStore;
+  const { address, neighbourhood, name, imgUrl } = coffeeStore;
+
+  const [votingCount, setVotingCount] = useState(1);
 
   const handleUpvoteButton = () => {
     console.log("handle upvote");
+    let count = votingCount + 1;
+    setVotingCount(count);
   };
 
   return (
@@ -117,13 +155,15 @@ const CoffeeStore = (initialProps) => {
             <Image src="/static/icons/places.svg" width="24" height="24" />
             <p className={styles.text}>{address || "No address info"}</p>
           </div>
-          <div className={styles.iconWrapper}>
-            <Image src="/static/icons/nearMe.svg" width="24" height="24" />
-            <p className={styles.text}>{neighborhood}</p>
-          </div>
+          {neighbourhood && (
+            <div className={styles.iconWrapper}>
+              <Image src="/static/icons/nearMe.svg" width="24" height="24" />
+              <p className={styles.text}>{neighbourhood}</p>
+            </div>
+          )}
           <div className={styles.iconWrapper}>
             <Image src="/static/icons/star.svg" width="24" height="24" />
-            <p className={styles.text}>1</p>
+            <p className={styles.text}>{votingCount}</p>
           </div>
 
           <button className={styles.upvoteButton} onClick={handleUpvoteButton}>

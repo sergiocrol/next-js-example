@@ -4,7 +4,7 @@ import { StoreContext, ACTION_TYPES } from "../store/store-context";
 
 const useTrackLocation = () => {
   const [locationErrorMsg, setLocationErrorMsg] = React.useState("");
-  // const [latLong, setLatLong] = React.useState("");
+
   const [isFindingLocation, setIsFindingLocation] = React.useState(false);
 
   const { dispatch } = useContext(StoreContext);
@@ -13,7 +13,6 @@ const useTrackLocation = () => {
     const latitude = position.coords.latitude;
     const longitude = position.coords.longitude;
 
-    // setLatLong(`${latitude},${longitude}`);
     dispatch({
       type: ACTION_TYPES.SET_LAT_LONG,
       payload: {
