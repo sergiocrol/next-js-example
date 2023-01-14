@@ -10,6 +10,30 @@ import styles from "../styles/Home.module.css";
 import useTrackLocation from "../hooks/use-track-location";
 
 import { StoreContext, ACTION_TYPES } from "../store/store-context";
+import { fetchCoffeeStores } from "../lib/coffee-stores";
+
+export async function getStaticProps(context) {
+  if (
+    !process.env.NEXT_PUBLIC_FOURSQUARE_API_KEY &&
+    !process.env.AIRTABLE_API_KEY &&
+    !process.env.AIRTABLE_BASE_ID &&
+    !process.env.NEXT_PUBLIC_UNSPLASH_API_KEY
+  ) {
+    return {
+      redirect: {
+        destination: "/problem",
+        permanent: false,
+      },
+    };
+  }
+  const coffeeStores = await fetchCoffeeStores();
+
+  return {
+    props: {
+      coffeeStores,
+    }, // will be passed to the page component as props
+  };
+}
 
 export default function Home(props) {
   const {
@@ -91,27 +115,25 @@ export default function Home(props) {
           </div>
         )}
 
-        {coffeeStores.length === 0 && (
-          <div className={styles.sectionWrapper}>
-            <h2 className={styles.heading2}>Bilbao stores</h2>
-            <div className={styles.cardLayout}>
-              {coffeeStores.map((coffeeStore) => {
-                return (
-                  <Card
-                    key={coffeeStore.id}
-                    name={coffeeStore.name}
-                    href={`/coffee-store/${coffeeStore.id}`}
-                    imgUrl={
-                      coffeeStore.imgUrl ||
-                      "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"
-                    }
-                    className={styles.card}
-                  />
-                );
-              })}
-            </div>
+        <div className={styles.sectionWrapper}>
+          <h2 className={styles.heading2}>Bilbao stores</h2>
+          <div className={styles.cardLayout}>
+            {props.coffeeStores.map((coffeeStore) => {
+              return (
+                <Card
+                  key={coffeeStore.id}
+                  name={coffeeStore.name}
+                  href={`/coffee-store/${coffeeStore.id}`}
+                  imgUrl={
+                    coffeeStore.imgUrl ||
+                    "https://images.unsplash.com/photo-1498804103079-a6351b050096?ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&ixlib=rb-1.2.1&auto=format&fit=crop&w=2468&q=80"
+                  }
+                  className={styles.card}
+                />
+              );
+            })}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );

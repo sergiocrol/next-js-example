@@ -1,13 +1,14 @@
 import React, { useContext, useState } from "react";
 import { useRouter } from "next/router";
+import cls from "classnames";
 import Link from "next/link";
 import Head from "next/head";
 import Image from "next/image";
-import cls from "classnames";
+import useSWR from "swr";
 
 import { fetchCoffeeStores } from "../../lib/coffee-stores";
 
-import { isEmpty } from "../../utils";
+import { fetcher, isEmpty } from "../../utils";
 import { StoreContext } from "../../store/store-context";
 
 import styles from "../../styles/coffee-store.module.css";
@@ -73,7 +74,7 @@ const CoffeeStore = (initialProps) => {
   // this exists in the app's DB (otherwise it will only exists in the user's context)
   const handleCreateCoffeeStore = async (coffeeStore) => {
     try {
-      const { name, voting, imgUrl, id, neighbourhood, address } = coffeeStore;
+      const { name, imgUrl, id, neighbourhood, address } = coffeeStore;
       const response = await fetch("/api/createCoffeeStore", {
         method: "POST",
         headers: {
@@ -90,7 +91,6 @@ const CoffeeStore = (initialProps) => {
       });
 
       const dbCoffeeStore = await response.json();
-      console.log({ dbCoffeeStore });
     } catch (err) {
       console.log("Error creating coffee store", err);
     }
@@ -109,20 +109,50 @@ const CoffeeStore = (initialProps) => {
         }
       }
     } else {
-      //SSG
       handleCreateCoffeeStore(coffeeStore);
     }
   }, [id, coffeeStore]);
 
-  const { address, neighbourhood, name, imgUrl } = coffeeStore;
+  const { address, neighbourhood, voting, name, imgUrl } = coffeeStore;
 
-  const [votingCount, setVotingCount] = useState(1);
+  const [votingCount, setVotingCount] = useState(0);
 
-  const handleUpvoteButton = () => {
-    console.log("handle upvote");
-    let count = votingCount + 1;
-    setVotingCount(count);
+  const { data, error } = useSWR(`/api/getCoffeeStoreById?id=${id}`, fetcher);
+
+  React.useEffect(() => {
+    if (data && data.length > 0) {
+      setCoffeeStore(data[0]);
+
+      setVotingCount(data[0].voting);
+    }
+  }, [data]);
+
+  const handleUpvoteButton = async () => {
+    try {
+      const response = await fetch("/api/favouriteCoffeeStoreById", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id,
+        }),
+      });
+
+      const dbCoffeeStore = await response.json();
+
+      if (dbCoffeeStore && dbCoffeeStore.length > 0) {
+        let count = votingCount + 1;
+        setVotingCount(count);
+      }
+    } catch (err) {
+      console.log("Error upvoting the coffee store", err);
+    }
   };
+
+  if (error) {
+    return <div>Something went wrong retrieving the Coffee Store page</div>;
+  }
 
   return (
     <div className={styles.layout}>
