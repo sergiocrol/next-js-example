@@ -73,7 +73,7 @@ export default function Home(props) {
 
       getCurrentPositionCoffeeStores();
     }
-  }, [latLong]);
+  }, [dispatch, latLong]);
 
   return (
     <div className={styles.container}>
@@ -90,7 +90,12 @@ export default function Home(props) {
         {locationErrorMsg && <p>Something went wrong: {locationErrorMsg}</p>}
         {coffeeStoresError && <p>Something went wrong: {coffeeStoresError}</p>}
         <div className={styles.heroImage}>
-          <Image src="/static/hero-image.png" width={700} height={400} />
+          <Image
+            src="/static/hero-image.png"
+            width={700}
+            height={400}
+            alt="Hero image"
+          />
         </div>
 
         {coffeeStores.length > 0 && (

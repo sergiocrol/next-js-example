@@ -51,17 +51,11 @@ export async function getStaticPaths() {
 const CoffeeStore = (initialProps) => {
   const router = useRouter();
 
-  // If we have set up fallback as true, we'll want to give Next.js some time
-  // until page is downloaded and pre-rendered, so a loading status code is a good option.
-  if (router.isFallback) {
-    return <div>Loading...</div>;
-  }
-
   // We get the coffeeStore's id from the route of our individual page
   const id = router.query.id;
 
   const [coffeeStore, setCoffeeStore] = React.useState(
-    initialProps.coffeeStore
+    initialProps.coffeeStore || {}
   );
 
   // We check if exists a coffeeStore with this id in the context store
@@ -111,7 +105,7 @@ const CoffeeStore = (initialProps) => {
     } else {
       handleCreateCoffeeStore(coffeeStore);
     }
-  }, [id, coffeeStore]);
+  }, [id, coffeeStore, coffeeStores]);
 
   const { address, neighbourhood, voting, name, imgUrl } = coffeeStore;
 
@@ -150,8 +144,8 @@ const CoffeeStore = (initialProps) => {
     }
   };
 
-  if (error) {
-    return <div>Something went wrong retrieving the Coffee Store page</div>;
+  if (router.isFallback) {
+    return <div>Loading...</div>;
   }
 
   return (
@@ -182,17 +176,32 @@ const CoffeeStore = (initialProps) => {
         </div>
         <div className={cls("glass", styles.col2)}>
           <div className={styles.iconWrapper}>
-            <Image src="/static/icons/places.svg" width="24" height="24" />
+            <Image
+              src="/static/icons/places.svg"
+              width="24"
+              height="24"
+              alt="places icon"
+            />
             <p className={styles.text}>{address || "No address info"}</p>
           </div>
           {neighbourhood && (
             <div className={styles.iconWrapper}>
-              <Image src="/static/icons/nearMe.svg" width="24" height="24" />
+              <Image
+                src="/static/icons/nearMe.svg"
+                width="24"
+                height="24"
+                alt="near me icon"
+              />
               <p className={styles.text}>{neighbourhood}</p>
             </div>
           )}
           <div className={styles.iconWrapper}>
-            <Image src="/static/icons/star.svg" width="24" height="24" />
+            <Image
+              src="/static/icons/star.svg"
+              width="24"
+              height="24"
+              alt="star icon"
+            />
             <p className={styles.text}>{votingCount}</p>
           </div>
 

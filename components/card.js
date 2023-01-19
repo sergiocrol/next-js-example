@@ -18,6 +18,7 @@ const Card = (props) => {
               width={260}
               height={160}
               className={styles.cardImage}
+              alt="Coffee Store image"
             />
           </div>
         </div>
